@@ -1,6 +1,7 @@
 from typing import Dict, List, Tuple
 import pickle
 import numpy as np
+import matplotlib.pyplot as plt
 
 def words(data: List[str], X: int) -> List[str]:
     wordsCounter: Dict[str, int] = {}
@@ -72,6 +73,15 @@ def perceptron_train(data, vocabulary):
 
     return (w, totalMistake, epochs)
 
+def buildTrainVecs(X, file):
+    trainVecs = []
+    trainLabels = []
+    with open(file, 'r') as f:
+        emails = f.readlines()
+        vocabularyList = words(emails, X)
+        trainLabels = list(map(lambda x: 1 if int(x.split(' ')[0]) == 1 else -1, emails))
+        trainVecs = list(map(lambda x: feature_vector(x, vocabularyList), emails))
+        return (trainVecs, trainLabels, vocabularyList)
 
 if __name__ == "__main__":
     trainVecs = []
@@ -79,36 +89,99 @@ if __name__ == "__main__":
 
     validVecs = []
     validLabels = []
-
+    # with open("spam_data/validation.txt", "r") as f:
+    #     emails = f.readlines()
+    #     validLabels = list(map(lambda x: 1 if int(x.split(' ')[0]) == 1 else -1, emails))
+    #     validVecs = list(map(lambda x: feature_vector(x, vocabularyList), emails))
     testVecs = []
     vocabularyList = []
-    with open("spam_data/train.txt", 'r') as f:
-        emails = f.readlines()
-        vocabularyList = words(emails, 26)
-        trainLabels = list(map(lambda x: 1 if int(x.split(' ')[0]) == 1 else -1, emails))
-        trainVecs = list(map(lambda x: feature_vector(x, vocabularyList), emails))
+
+    # trainVecs, trainLabels, vocabularyList = buildTrainVecs(26, "spam_data/train.txt")
+
+
+
+    # fullTrainVecs = []
+    # fullTrainLabels = []
+
+    # with open("spam_data/spam_train", "r") as f:
+    #     emails = f.readlines()
+    #     vocabularyList = words(emails, 26)
+    #     trainLabels = list(map(lambda x: 1 if int(x.split(' ')[0]) == 1 else -1, emails))
+    #     trainVecs = list(map(lambda x: feature_vector(x, vocabularyList), emails))
+    # w, k, iterations = perceptron_train([trainLabels, trainVecs], vocabularyList)
+    # trainError = perceptron_error(w, [trainLabels, trainVecs])
+    # print(trainError)
+    # validationError = perceptron_error(w, [validLabels, validVecs])
+    # print(validationError)
+    # sortedW = np.argsort(w)
+    # largest12 = sortedW[-12:]
+    # smallest12 = sortedW[:12]
+
+    # print("most positive weights are:")
+    # for idx in largest12:
+    #     print(vocabularyList[idx])
+
+    # print("most negative weights are:")
+    # for idx in smallest12:
+    #     print(vocabularyList[idx])
+    # with open("weight.pkl", "wb") as f:
+    #     pickle.dump(w, f)
+
+
+    # 1.5
+    # validationErrors = []
+    # iters = []
+    # exps = [200, 600, 1200, 2400, 4000]
+    # for rowNum in exps:
+    #     w, _, i = perceptron_train([trainLabels[:rowNum], trainVecs[:rowNum]], vocabularyList)
+    #     e = perceptron_error(w, [validLabels, validVecs])
+    #     validationErrors.append(e)
+    #     iters.append(i)
+    # plt.plot(exps, validationErrors)
+    # plt.title("Validation error with different size of training data")
+    # plt.xlabel("training set")
+    # plt.ylabel("validation error")
+    # plt.show()
+    # plt.plot(exps, iters)
+    # plt.title("Iteractions with different size of training data")
+    # plt.xlabel("training set")
+    # plt.ylabel("Iteractions")
+    # plt.show()
+
+    #1.8
+    # config = [i for i in range(22, 29)]
+    # validationErrors = []
+    # for c in config:
+    #     trainVecs, trainLabels, vocabularyList = buildTrainVecs(c, "spam_data/train.txt")
+    #     with open("spam_data/validation.txt", "r") as f:
+    #         emails = f.readlines()
+    #         validLabels = list(map(lambda x: 1 if int(x.split(' ')[0]) == 1 else -1, emails))
+    #         validVecs = list(map(lambda x: feature_vector(x, vocabularyList), emails))
+    #     w, _, _ = perceptron_train([trainLabels, trainVecs], vocabularyList)
+    #     e = perceptron_error(w, [validLabels, validVecs])
+    #     validationErrors.append(e)
+    # plt.plot(config, validationErrors)
+    # plt.title("Validation error with different X value")
+    # plt.xlabel("training set")
+    # plt.ylabel("validation error")
+    # plt.show()
+
+    #1.8 -2 0.018
+    # trainVecs, trainLabels, vocabularyList = buildTrainVecs(22, "spam_data/spam_train.txt")
+    # with open("spam_data/spam_test.txt", "r") as f:
+    #     emails = f.readlines()
+    #     testLabels = list(map(lambda x: 1 if int(x.split(' ')[0]) == 1 else -1, emails))
+    #     testVecs = list(map(lambda x: feature_vector(x, vocabularyList), emails))
+    # w, _, _ = perceptron_train([trainLabels, trainVecs], vocabularyList)
+    # e = perceptron_error(w, [testLabels, testVecs])
+    # print(e)
+
+    #1.9
+    trainVecs, trainLabels, vocabularyList = buildTrainVecs(1500, "spam_data/train.txt")
     with open("spam_data/validation.txt", "r") as f:
         emails = f.readlines()
         validLabels = list(map(lambda x: 1 if int(x.split(' ')[0]) == 1 else -1, emails))
         validVecs = list(map(lambda x: feature_vector(x, vocabularyList), emails))
-    with open("spam_data/spam_test.txt", "r") as f:
-        emails = f.readlines()
-        testVecs = list(map(lambda x: feature_vector(x, vocabularyList), emails))
-    w, k, iterations = perceptron_train([trainLabels, trainVecs], vocabularyList)
-    trainError = perceptron_error(w, [trainLabels, trainVecs])
-    print(trainError)
-    validationError = perceptron_error(w, [validLabels, validVecs])
-    print(validationError)
-    sortedW = np.argsort(w)
-    largest12 = sortedW[-12:]
-    smallest12 = sortedW[:12]
-
-    print("most positive weights are:")
-    for idx in largest12:
-        print(vocabularyList[idx])
-
-    print("most negative weights are:")
-    for idx in smallest12:
-        print(vocabularyList[idx])
-    with open("weight.pkl", "wb") as f:
-        pickle.dump(w, f)
+    w, _, _ = perceptron_train([trainLabels, trainVecs], vocabularyList)
+    e = perceptron_error(w, [validLabels, validVecs])
+    print(e)
