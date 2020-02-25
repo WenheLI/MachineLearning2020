@@ -2,9 +2,14 @@
 
 ## Program 1
 - 1.3  
-
+    After setting bias, it made `430` mistakes in total.
+    The error rate on training set is `0`. And it is `0.02(2%)` on validation set.
 - 1.4
+    Postive words:
+    ![](./pos.png)
 
+    Negative words:
+    ![](./neg.png)
 - 1.5 
     ![./Figure_1.png](./Figure_1.png)
 
@@ -14,16 +19,17 @@
     Set a max iteration to 30.
 - 1.8
     ![](3.png)
-    From the grpah, we can tell the best config is X = 22.
+    From the grpah, we can tell the best config is X = 27.
+    And the error rate on the whole test-set is 0.012(1.2%).
 - 1.9
   
-   37 features. 
+   38 features(37 words plus a bias). Error rate is 0.169(16.9%).
    
-   It is not separable. With such a huge number, we can only get a vector that describes the most common words. 
+   It is not separable. With such a huge number, we can only get a vector that describes the most common words among all email types. 
    Also, such a X also shows a huge validation error.
 - 1.10
     By using the validatoin set, we can tune the hyper-parameter in our model like the `X` in our case.
-    Also, bescuase the mode has no prior-knowledge about the test dataset. We can get a more accurate benchmark on the test dataset.
+    Also, bescuase the model has no prior-knowledge about the test dataset. We can get a more accurate benchmark on the test dataset.
 ## Problem 2
 Let's take two arbitrary points from the hyperplane $x_1$ amd $x_2$.
 
@@ -71,3 +77,5 @@ $$ M_tR^2 \ge {M_t}^2{\gamma}^2 \rArr M_t \le \frac{R^2}{{\gamma}^2}$$
 
 
 ## Problem 4
+By calculation, we know the $R^2$ for $X=26$ is $1114$. Also, we know the $M_t = 430$.
+Therefore, we get $\gamma^2 \le \frac{R^2}{M_t} \rArr 0 \le \gamma \le 1.61$
