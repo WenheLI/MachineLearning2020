@@ -6,19 +6,19 @@
     The error rate on training set is `0`. And it is `0.02(2%)` on validation set.
 - 1.4
     Postive words:
-    ![](./pos.png)
+    ![](./assets/pos.png)
 
     Negative words:
-    ![](./neg.png)
+    ![](./assets/neg.png)
 - 1.5 
-    ![./Figure_1.png](./Figure_1.png)
+    ![./assets/Figure_1.png](./assets/Figure_1.png)
 
 - 1.6
-    ![](2.png)
+    ![](./assets/2.png)
 - 1.7
     Set a max iteration to 30.
 - 1.8
-    ![](3.png)
+    ![](./assets/3.png)
     From the grpah, we can tell the best config is X = 27.
     And the error rate on the whole test-set is 0.012(1.2%).
 - 1.9
@@ -52,17 +52,25 @@ which shows, vector $w$ dot product any line in the plane equals zero and it mea
 
     We have $w_t \rArr w_{t-1} + x_{t-1}y_{t-1}$
 
-    Therefor, $w_t\cdot w^* = (w_{t-1} + x_{t-1}y_{t-1})w^* = w_{t-1}w^* + y_{t-1}x_{t-1}w^*$.
+    $\rArr w_t\cdot w^* = (w_{t-1} + x_{t-1}y_{t-1})w^* = w_{t-1}w^* + y_{t-1}x_{t-1}w^*$.
 
-    We know that $y_iw^*x_i \ge \gamma$, then we know $w_tw^* = w_{t-1}w^* + y_{t-1}x_{t-1}w^* \ge w_{t-1}w^* + \gamma$.
+    $\rArr y_iw^*x_i \ge \gamma$, then we know $w_tw^* = w_{t-1}w^* + y_{t-1}x_{t-1}w^* \ge w_{t-1}w^* + \gamma$.
 
-    Thus, we know $w_tw^* \ge \gamma + w_{t-1}w^*$; 
+    $\rArr w_tw^* \ge \gamma + w_{t-1}w^*$; 
 
-    Similarly, we know $w_{t-1}w^* \ge \gamma + w_{t-2}w^*$
+    $\rArr w_{t-1}w^* \ge \gamma + w_{t-2}w^*$
+    $$
+        w_{t}w^* \ge \gamma + w_{t-1}w^* 
+    $$
+    $$
+        w_{t-1}w^* \ge \gamma + w_{t-2}w^*
+    $$
 
     By substituting them iteratively, we will have $w_t\cdot w^* \ge M_t\gamma$
 
     Claim 2 proof done.
+
+    
 
 - Claim 3:
     Given Claim2 & Claim3, we have:

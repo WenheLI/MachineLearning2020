@@ -198,51 +198,9 @@ def q4():
     maxNorm = max(list(map(lambda x: vecL2Norm(x), trainVecs)))
     print(maxNorm)
 if __name__ == "__main__":
-    # q1_3()
+    q1_3()
     # q1_4()
     # q1_5and6()
     # q1_8()
-    q1_9()
-    q4()
-    # trainVecs = []
-    # trainLabels = []
-
-    # validVecs = []
-    # validLabels = []
-    # with open("spam_data/validation.txt", "r") as f:
-    #     emails = f.readlines()
-    #     validLabels = list(map(lambda x: 1 if int(x.split(' ')[0]) == 1 else -1, emails))
-    #     validVecs = list(map(lambda x: feature_vector(x, vocabularyList), emails))
-    # testVecs = []
-    # vocabularyList = []
-
-    # trainVecs, trainLabels, vocabularyList = buildTrainVecs(26, "spam_data/train.txt")
-
-
-
-    # fullTrainVecs = []
-    # fullTrainLabels = []
-
-    # with open("spam_data/spam_train", "r") as f:
-    #     emails = f.readlines()
-    #     vocabularyList = words(emails, 26)
-    #     trainLabels = list(map(lambda x: 1 if int(x.split(' ')[0]) == 1 else -1, emails))
-    #     trainVecs = list(map(lambda x: feature_vector(x, vocabularyList), emails))
-    # w, k, iterations = perceptron_train([trainLabels, trainVecs], vocabularyList)
-    # trainError = perceptron_error(w, [trainLabels, trainVecs])
-    # print(trainError)
-    # validationError = perceptron_error(w, [validLabels, validVecs])
-    # print(validationError)
-    # sortedW = np.argsort(w)
-    # largest12 = sortedW[-12:]
-    # smallest12 = sortedW[:12]
-
-    # print("most positive weights are:")
-    # for idx in largest12:
-    #     print(vocabularyList[idx])
-
-    # print("most negative weights are:")
-    # for idx in smallest12:
-    #     print(vocabularyList[idx])
-    # with open("weight.pkl", "wb") as f:
-    #     pickle.dump(w, f)
+    # q1_9()
+    # q4()
