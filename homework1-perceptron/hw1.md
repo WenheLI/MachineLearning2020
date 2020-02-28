@@ -5,7 +5,7 @@
     After setting bias, it made `430` mistakes in total.
     The error rate on training set is `0`. And it is `0.02(2%)` on validation set.
 - 1.4
-    Postive words:
+    Postive(largest weights) words:
     ![](./assets/pos.png)
 
     Negative words:
@@ -65,6 +65,12 @@ which shows, vector $w$ dot product any line in the plane equals zero and it mea
     $$
         w_{t-1}w^* \ge \gamma + w_{t-2}w^*
     $$
+    $$
+        \vdots
+    $$
+    $$
+        w_1w^* \ge \gamma + w_0w^*
+    $$
 
     By substituting them iteratively, we will have $w_t\cdot w^* \ge M_t\gamma$
 
@@ -80,7 +86,7 @@ For second claim:
 $$w_t\cdot w^* \ge M_t \gamma \rArr \lVert w_t \rVert \lVert w^* \rVert cos\theta \ge M_t\gamma$$
 Since we know by defination, $\lVert W^* \rVert = 1$,
 $$ w_t\cdot w^* \ge M_t \gamma \rArr \lVert w_t \rVert cos\theta \ge M_t\gamma \rArr {\lVert w_t \rVert}^2 {cos}^2\theta \ge {M_t}^2 {\gamma}^2  $$
-We know that ${\lVert w_t \rVert}^2 \ge {\lVert w_t \rVert}^2{cos}^2\theta$,
+We know that $M_tR^2 \ge {\lVert w_t \rVert}^2 \ge {\lVert w_t \rVert}^2{cos}^2\theta \ge {M_t}^2\gamma^2$,
 $$ M_tR^2 \ge {M_t}^2{\gamma}^2 \rArr M_t \le \frac{R^2}{{\gamma}^2}$$
 
 

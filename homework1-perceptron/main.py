@@ -117,9 +117,14 @@ def q1_4():
         v = pickle.load(f)
     with open("./weight.pkl", "rb") as f:
         w = pickle.load(f)
+        
+        # exclude bias w0
+        w = w[1:]
+        print(len(w))
         sortedW = np.argsort(w)
         largest12 = sortedW[-12:]
         smallest12 = sortedW[:12]
+        largest12 = reversed(largest12)
         print("most positive weights are:")
         for large in largest12:
             print(v[large], end="\n")
@@ -198,9 +203,9 @@ def q4():
     maxNorm = max(list(map(lambda x: vecL2Norm(x), trainVecs)))
     print(maxNorm)
 if __name__ == "__main__":
-    q1_3()
+    # q1_3()
     # q1_4()
     # q1_5and6()
     # q1_8()
     # q1_9()
-    # q4()
+    q4()
