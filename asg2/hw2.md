@@ -20,15 +20,15 @@ Wenhe Li (wl1508)
 - d
   - i
     From the table:
-    $P(X=1) = \frac{7}{18}, P(Y = 0) = \frac{8}{15}, P(X=1)P(Y=0) = \frac{28}{135}$
-    $P(X=1,Y=0) = \frac{1}{5} \neq P(X=1)P(Y=0)$
+    $P(X=1) = \frac{7}{18}, P(X = 1 | Y = 0) = \frac{3}{8}$
+    $P(X=1) \ne P(X = 1 | Y = 0)$
     Not independent.
   - ii
-    $P(Y=0 \vert Z=0) = \frac{2}{5}, P(X=1) = \frac{7}{18}, P(X=1)P(Y=0 \vert Z=0) = \frac{7}{45}$
-    $P(X = 1, Y = 0 \vert Z = 0) = \frac{1}{15}$
-    Not independent.
+    $P(X=1|Y=1, Z=1) = \frac{1}{3} = P(X=1|Y=0, Z=1) = P(X=1 | Z=1)$
+    $P(X=1|Y=1, Z=0) = \frac{1}{2} = P(X=1|Y=0, Z=0) = P(X=1 | Z=0)$
+    Independent.
   - iii
-    $P(X = 0 \vert X + Y > 0) = \frac{25}{42}$
+    $P(X = 0 \vert X + Y > 0) = P(X = 0 | Y = 1) = \frac{25}{42}$
 
 ## Problem 2
 - a
