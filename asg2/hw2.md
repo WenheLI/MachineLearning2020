@@ -28,7 +28,7 @@ Wenhe Li (wl1508)
     $P(X=1|Y=1, Z=0) = \frac{1}{2} = P(X=1|Y=0, Z=0) = P(X=1 | Z=0)$
     Independent.
   - iii
-    $P(X = 0 \vert X + Y > 0) = P(X = 0 | Y = 1) = \frac{25}{42}$
+    $P(X = 0 \vert X + Y > 0) = \frac{5}{12}$
 
 ## Problem 2
 - a
