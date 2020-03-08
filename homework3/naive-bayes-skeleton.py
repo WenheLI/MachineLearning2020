@@ -30,7 +30,9 @@ def read_data(filename):
 
     # Fill in your code here.
 
-    pass
+    with open(filename, "r") as f:
+        lines = list(map(lambda line: line.strip().split(), f.readlines()))
+        return list(map(lambda line: (True if line[0] == "1" else False, line[1:]), lines))
 
 
 def split_train(original_train_data):
@@ -42,8 +44,8 @@ def split_train(original_train_data):
 
     # Fill in your code here.
 
-    pass
-
+    split_idx = int(len(original_train_data) * .8)
+    return (original_train_data[:split_idx], original_train_data[split_idx:])
 
 def create_wordlist(original_train_data, threshold=26):
     """
@@ -52,8 +54,19 @@ def create_wordlist(original_train_data, threshold=26):
     """
 
     # Fill in your code here.
+    words_dict = {}
+    
+    for data in original_train_data:
+        data = list(set(data[1]))
+        for d in data:
+            if d in words_dict.keys():
+                words_dict[d] += 1
+            else:
+                words_dict[d] = 1
+    ret = list(map(lambda word: word[0], filter(lambda x: x[1] >= threshold, words_dict.items())))
+    print(len(ret))
+    return ret
 
-    pass
 
 
 class Model:
@@ -68,7 +81,14 @@ class Model:
 
         # Fill in your code here.
 
-        pass
+        pos_counts = len(list(filter(lambda d: d[0], data)))
+        total = len(data)
+        neg_counts = total - pos_counts
+        print(total)
+        print(neg_counts)
+        print(pos_counts)
+        return neg_counts, pos_counts
+
 
     @staticmethod
     def count_words(wordlist, data):
@@ -81,8 +101,17 @@ class Model:
         """
 
         # Fill in your code here.
-
-        pass
+        word_counts = [[0] * len(wordlist) for i in range(2)]
+        for d in data:
+            idx = 1 if d[0] else 0
+            d = set(d[1])
+            # print(d)
+            for word_idx in range(len(wordlist)):
+                if wordlist[word_idx] in d:
+                    word_counts[idx][word_idx] += 1
+        print(max(word_counts[0]))
+        print(max(word_counts[1]))
+        return np.asarray(word_counts)
 
     @staticmethod
     def calculate_probability(label_counts, word_counts):
@@ -99,8 +128,12 @@ class Model:
 
         # Fill in your code here.
         # Do not forget to add the additional counts.
+        neg, pos = label_counts
+        total = neg + pos
+        prior_probs = np.asarray([neg/total, pos/total])
+        likelihood_probs = list(map(lambda x, idx: list(map(lambda it: it / label_counts[idx], x)), word_counts, range(len(word_counts))))
 
-        pass
+        return prior_probs, np.asarray(likelihood_probs)
 
     def __init__(self, wordlist):
         self.wordlist = wordlist
@@ -110,7 +143,6 @@ class Model:
         word_counts = self.__class__.count_words(self.wordlist, data)
 
         self.prior_probs, self.likelihood_probs = self.__class__.calculate_probability(label_counts, word_counts)
-
         # You may do some additional processing of variables here, if you want.
         # Suggestion: You may get the log of probabilities.
 
@@ -123,7 +155,26 @@ class Model:
 
         # Fill in your code here.
 
-        pass
+        neg = 1
+        pos = 1
+
+        feature_vec = list(map(lambda ele: 1 if ele in x else 0, self.wordlist))
+        for idx in range(len(feature_vec)):
+            if feature_vec[idx] == 1:
+                neg *= self.likelihood_probs[0][idx]
+                pos *= self.likelihood_probs[1][idx]
+        neg *= self.prior_probs[0]
+        pos *= self.prior_probs[1]
+
+        if neg == 0:
+            return True
+        if pos == 0:
+            return False
+
+        if neg/pos > 1:
+            return False
+            
+        return True
 
 
 def main(argv):
