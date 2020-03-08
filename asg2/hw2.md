@@ -66,7 +66,7 @@ Wenhe Li (wl1508)
   ```
   ![](./mle_1.png)
 - c
-  We define $n_1 = \# of X_i = 1$ and $n_2 = \# of X_i = 2$.
+  We define $n_1 = \# of X_i = 1$ and $n_2 = \# of X_i = 0$.
   $$
     L(\hat{\theta}) = \prod_{i=1}^n \theta^{x_i}*(1 - \theta)^{(1 - x_i)}
     \rArr L(\hat{\theta}) = \theta^{n_1} * (1-\theta)^{n_2} \\
@@ -88,7 +88,7 @@ Wenhe Li (wl1508)
   def mapFunc(D, theta):
       res = 1
       for d in D:
-          res *= ((theta) ** d) + ((1 - theta) ** (1 - d))
+          res *= ((theta) ** d) * ((1 - theta) ** (1 - d))
           beta = ((theta ** 2)*(1 - theta) ** 2) / .0333
           return res * beta
 

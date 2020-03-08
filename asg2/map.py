@@ -3,7 +3,7 @@ import matplotlib.pyplot as plot
 def mapFunc(D, theta):
     res = 1
     for d in D:
-        res *= ((theta) ** d) + ((1 - theta) ** (1 - d))
+        res *= ((theta) ** d) * ((1 - theta) ** (1 - d))
         beta = ((theta ** 2)*(1 - theta) ** 2) / .0333
         return res * beta
 
