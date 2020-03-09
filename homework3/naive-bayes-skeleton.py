@@ -2,7 +2,7 @@
 Put your NetID here.
 """
 
-
+import matplotlib.pyplot as pyplot
 import sys
 import argparse
 import numpy as np
@@ -64,7 +64,7 @@ def create_wordlist(original_train_data, threshold=26):
             else:
                 words_dict[d] = 1
     ret = list(map(lambda word: word[0], filter(lambda x: x[1] >= threshold, words_dict.items())))
-    print(len(ret))
+    # print(len(ret))
     return ret
 
 
@@ -84,9 +84,9 @@ class Model:
         pos_counts = len(list(filter(lambda d: d[0], data)))
         total = len(data)
         neg_counts = total - pos_counts
-        print(total)
-        print(neg_counts)
-        print(pos_counts)
+        # print(total)
+        # print(neg_counts)
+        # print(pos_counts)
         return neg_counts, pos_counts
 
 
@@ -109,12 +109,12 @@ class Model:
             for word_idx in range(len(wordlist)):
                 if wordlist[word_idx] in d:
                     word_counts[idx][word_idx] += 1
-        print(max(word_counts[0]))
-        print(max(word_counts[1]))
+        # print(max(word_counts[0]))
+        # print(max(word_counts[1]))
         return np.asarray(word_counts)
 
     @staticmethod
-    def calculate_probability(label_counts, word_counts):
+    def calculate_probability(label_counts, word_counts, use_map=False):
         """
         Calculate the probabilities, both the prior and likelihood.
         Returns (a pair of numpy array):
@@ -131,18 +131,25 @@ class Model:
         neg, pos = label_counts
         total = neg + pos
         prior_probs = np.asarray([neg/total, pos/total])
-        likelihood_probs = list(map(lambda x, idx: list(map(lambda it: it / label_counts[idx], x)), word_counts, range(len(word_counts))))
+        if use_map:
+            likelihood_probs = list(map(lambda x, idx: list(map(lambda it: (it+1) / (label_counts[idx] + len(word_counts[idx])), x)), word_counts, range(len(word_counts))))
+        else:
+            likelihood_probs = list(map(lambda x, idx: list(map(lambda it: it / label_counts[idx], x)), word_counts, range(len(word_counts))))
 
         return prior_probs, np.asarray(likelihood_probs)
 
     def __init__(self, wordlist):
         self.wordlist = wordlist
 
-    def fit(self, data):
+    def fit(self, data, cal_error=False, use_map=False):
         label_counts = self.__class__.count_labels(data)
         word_counts = self.__class__.count_words(self.wordlist, data)
 
-        self.prior_probs, self.likelihood_probs = self.__class__.calculate_probability(label_counts, word_counts)
+        self.prior_probs, self.likelihood_probs = self.__class__.calculate_probability(label_counts, word_counts, use_map=use_map)
+        if cal_error:
+            error_count = sum([y != self.predict(x) for y, x in data])
+            error_percentage = error_count / len(data) * 100
+            return error_percentage
         # You may do some additional processing of variables here, if you want.
         # Suggestion: You may get the log of probabilities.
 
@@ -166,18 +173,12 @@ class Model:
         neg *= self.prior_probs[0]
         pos *= self.prior_probs[1]
 
-        if neg == 0:
+        if pos/neg >= 1:
             return True
-        if pos == 0:
-            return False
-
-        if neg/pos > 1:
-            return False
             
-        return True
+        return False
 
-
-def main(argv):
+def a(argv):
     opts = Opts(argv)
 
     if opts.test is None:
@@ -202,6 +203,98 @@ def main(argv):
     else:
         print("Test error, # = {:>4d}, % = {:>8.4f}%.".format(error_count, error_percentage))
 
+def b(argv):
+    opts = Opts(argv)
+
+    if opts.test is None:
+        original_train_data = read_data(opts.train)
+        train_data, val_data = split_train(original_train_data)
+    else:
+        original_train_data = read_data(opts.train)
+        train_data = original_train_data
+        val_data = read_data(opts.test)
+    sizeN = [200, 400, 800, 1600, 2400, 3200, 4000]
+    validation = []
+    train = []
+    for size in sizeN:
+        # Create the word list.
+        wordlist = create_wordlist(original_train_data, opts.threshold)
+
+        model = Model(wordlist)
+        train.append(model.fit(train_data[:size], cal_error=True))
+
+        error_count = sum([y != model.predict(x) for y, x in val_data])
+        error_percentage = error_count / len(val_data) * 100
+        print("Validation error, # = {:>4d}, % = {:>8.4f}%.".format(error_count, error_percentage))
+        validation.append(error_percentage)
+    trainLine = pyplot.plot(sizeN, train, label="train")
+    validationLine = pyplot.plot(sizeN, validation, label="validation")
+    pyplot.title("Training Size V.S. Error Rate")
+    pyplot.xlabel("Training Size")
+    pyplot.ylabel("Error Rate")
+    pyplot.legend(["train", "validation"])
+    pyplot.show()
+
+def c(argv):
+    opts = Opts(argv)
+
+    original_train_data = read_data(opts.train)
+    train_data, val_data = split_train(original_train_data)
+
+    config = [i for i in range(19, 29)]
+    validation = []
+    for size in config:
+        # Create the word list.
+        wordlist = create_wordlist(original_train_data, size)
+
+        model = Model(wordlist)
+        model.fit(train_data)
+
+        error_count = sum([y != model.predict(x) for y, x in val_data])
+        error_percentage = error_count / len(val_data) * 100
+        print("Validation error, # = {:>4d}, % = {:>8.4f}%.".format(error_count, error_percentage))
+        validation.append(error_percentage)
+    pyplot.plot(config, validation, "r")
+    pyplot.title("Threshold V.S. Error Rate")
+    pyplot.xlabel("Threshold")
+    pyplot.ylabel("Error Rate")
+    pyplot.show()
+
+def d(argv):
+    opts = Opts(argv)
+
+    if opts.test is None:
+        original_train_data = read_data(opts.train)
+        train_data, val_data = split_train(original_train_data)
+    else:
+        original_train_data = read_data(opts.train)
+        train_data = original_train_data
+        val_data = read_data(opts.test)
+
+    # Create the word list.
+    wordlist = create_wordlist(original_train_data, opts.threshold)
+
+    model = Model(wordlist)
+    model.fit(train_data)
+
+    error_count = sum([y != model.predict(x) for y, x in val_data])
+    error_percentage = error_count / len(val_data) * 100
+
+    print("MLE::Validation error, # = {:>4d}, % = {:>8.4f}%.".format(error_count, error_percentage))
+
+    model = Model(wordlist)
+    model.fit(train_data, use_map=True)
+
+    error_count = sum([y != model.predict(x) for y, x in val_data])
+    error_percentage = error_count / len(val_data) * 100
+
+    print("MAP::Validation error, # = {:>4d}, % = {:>8.4f}%.".format(error_count, error_percentage))
+
+def main(argv):
+    # a(argv)
+    # b(argv)
+    # c(argv)
+    d(argv)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
