@@ -7,6 +7,7 @@ import sys
 import argparse
 import numpy as np
 import math
+from collections import Counter
 
 class Opts:
     def __init__(self, argv):
@@ -29,16 +30,10 @@ def read_data(filename):
     """
 
     # Fill in your code here.
-    ret = []
     with open(filename, "r") as f:
-        for line in f.readlines():
-            temp = []
-            line = line.split()
-            temp.append(line[0] == "1")
-            for word in line[1:]:
-                temp.append(word)
-            ret.append(temp)
-    return ret
+        lines = list(map(lambda line: line.strip().split(), f.readlines()))
+        return list(map(lambda line: (True if line[0] == "1" else False, line[1:]), lines))
+
 
 def split_train(original_train_data):
     """
@@ -93,7 +88,7 @@ class Model:
             else:
                 neg += 1
         tot = len(data)
-        return neg/tot, pos/tot
+        return neg, pos
     
     @staticmethod
     def count_words(wordlist, label_counts, data):
@@ -109,16 +104,16 @@ class Model:
         # Fill in your code here.
         neg_counts, pos_counts = label_counts
         wordlist_length = len(wordlist)
+        print(label_counts)
         negative_word_counts = [[0] * wordlist_length for i in range(neg_counts)]
         positive_word_counts = [[0] * wordlist_length for i in range(pos_counts)]
-
-        for d_idx in range(len(filter(lambda x: x[0], data))):
+        for d_idx in range(len(list(filter(lambda x: x[0], data)))):
             for word_idx in range(wordlist_length):
                 d = data[d_idx]
                 if wordlist[word_idx] in d[1]:
                     positive_word_counts[d_idx][word_idx] += 1
 
-        for d_idx in range(len(filter(lambda x: not x[0], data))):
+        for d_idx in range(len(list(filter(lambda x: not x[0], data)))):
             for word_idx in range(wordlist_length):
                 d = data[d_idx]
                 if wordlist[word_idx] in d[1]:
@@ -149,39 +144,41 @@ class Model:
         total = pos_counts + neg_counts
         prior_probs = np.asarray([neg_counts/total, pos_counts/total])
 
-        likelihood_mus_neg = [0 for i in range(neg_counts)]
-        likelihood_mus_pos = [0 for i in range(pos_counts)]
+        likelihood_mus_neg = [0 for i in range(len(negative_word_counts[0]))]
+        likelihood_mus_pos = [0 for i in range(len(positive_word_counts[0]))]
 
         for data in negative_word_counts:
             for idx in range(len(data)):
                 likelihood_mus_neg[idx] += data[idx]
-        for idx in range(likelihood_mus_neg):
+        for idx in range(len(likelihood_mus_neg)):
             likelihood_mus_neg[idx] /= neg_counts
 
         for data in positive_word_counts:
             for idx in range(len(data)):
                 likelihood_mus_pos[idx] += data[idx]
-        for idx in range(likelihood_mus_pos):
-            likelihood_mus_pos[idx] /= neg_counts
+        for idx in range(len(likelihood_mus_pos)):
+            likelihood_mus_pos[idx] /= pos_counts
 
         likelihood_mus = np.asarray([likelihood_mus_neg, likelihood_mus_pos])
 
-        likelihood_sigmas_neg = [0 for i in range(neg_counts)]
-        likelihood_sigmas_pos = [0 for i in range(pos_counts)]
+        likelihood_sigmas_neg = [0 for i in  range(len(negative_word_counts[0]))]
+        likelihood_sigmas_pos = [0 for i in  range(len(positive_word_counts[0]))]
 
         for data in negative_word_counts:
             for idx in range(len(data)):
                 likelihood_sigmas_neg[idx] = (data[idx] - likelihood_mus_neg[idx]) ** 2
-        for idx in range(likelihood_sigmas_neg):
+        for idx in range(neg_counts):
             likelihood_sigmas_neg[idx] /= neg_counts
 
         for data in positive_word_counts:
             for idx in range(len(data)):
                 likelihood_sigmas_pos[idx] = (data[idx] - likelihood_mus_pos[idx]) ** 2
-        for idx in range(likelihood_sigmas_pos):
-            likelihood_sigmas_pos[idx] /= neg_counts
+        for idx in range(pos_counts):
+            likelihood_sigmas_pos[idx] /= pos_counts
 
         likelihood_sigmas = np.asarray([likelihood_sigmas_neg, likelihood_sigmas_pos])
+
+        return prior_probs, likelihood_mus, likelihood_sigmas
 
     def __init__(self, wordlist):
         self.wordlist = wordlist
@@ -204,14 +201,25 @@ class Model:
         # Fill in your code here.
 
         def norm_func(x, miu, theta):
-            base = math.e/((2*math.pi*(theta**2)) ** .5)
-            power = -.5 * ((x - miu) / theta) ** 2
-            return base ** power
+            base = 1/((2*math.pi*(theta)) ** .5)
+            power = -.5 * ((x - miu)**2 / theta)
+            return base * (math.e ** power)
 
-        for word in x:
-            if word in self.wordlist:
-                idx = self.wordlist.index(word)
-                norm_func(word, self.likelihood_mus[0][idx], self.likelihood_sigmas[0][idx])
+        neg = 1
+        pos = 1
+
+        counters = Counter(x)
+        for idx in range(len(self.wordlist)):
+            if (self.wordlist[idx] in counters.keys()):
+                val = counters[self.wordlist[idx]]
+                neg *= norm_func(val, self.likelihood_mus[0][idx], self.likelihood_sigmas[0][idx])
+                pos *= norm_func(val, self.likelihood_mus[1][idx], self.likelihood_sigmas[1][idx])
+        neg *= self.prior_probs[0]
+        pos *= self.prior_probs[1]
+
+        if neg/pos >= 1:
+            return False
+        return True
 
 
 def main(argv):
@@ -230,7 +238,6 @@ def main(argv):
 
     model = Model(wordlist)
     model.fit(train_data)
-
     error_count = sum([y != model.predict(x) for y, x in val_data])
     error_percentage = error_count / len(val_data) * 100
 
