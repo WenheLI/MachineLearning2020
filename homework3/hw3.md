@@ -14,3 +14,4 @@ Wenhe Li wl1508
   In this case the MLE is much better. This is mainly because of the small size of the dataset. 
 
   The over-simpified prior distributation imposed a wrong distributation to the classifier, which introduces extra error rate.
+  

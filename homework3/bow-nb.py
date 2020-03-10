@@ -6,7 +6,7 @@ import matplotlib.pyplot as pyplot
 import sys
 import argparse
 import numpy as np
-
+from collections import Counter
 
 class Opts:
     def __init__(self, argv):
@@ -45,7 +45,7 @@ def split_train(original_train_data):
     # Fill in your code here.
 
     split_idx = int(len(original_train_data) * .8)
-    return (original_train_data[1000:], original_train_data[:1000])
+    return (original_train_data[:4000], original_train_data[4000:])
 
 def create_wordlist(original_train_data, threshold=26):
     """
@@ -135,7 +135,7 @@ class Model:
             for i in range(len(word_counts)):
                 for j in range(len(word_counts[i])):
                     word_counts[i][j] += 1
-            likelihood_probs = list(map(lambda x, idx: list(map(lambda it: it / (label_counts[idx] + len(word_counts[0])), x)), word_counts, range(len(word_counts))))
+            likelihood_probs = list(map(lambda x, idx: list(map(lambda it: it / label_counts[idx], x)), word_counts, range(len(word_counts))))
         else:
             likelihood_probs = list(map(lambda x, idx: list(map(lambda it: it / label_counts[idx], x)), word_counts, range(len(word_counts))))
 
@@ -168,11 +168,12 @@ class Model:
         neg = 1
         pos = 1
 
-        feature_vec = list(map(lambda ele: 1 if ele in x else 0, self.wordlist))
-        for idx in range(len(feature_vec)):
-            if feature_vec[idx] == 1:
-                neg *= self.likelihood_probs[0][idx]
-                pos *= self.likelihood_probs[1][idx]
+        c = Counter(x)
+        for idx in range(len(self.wordlist)):
+            if self.wordlist[idx] in c.keys():
+                for time in range(c.get(self.wordlist[idx])):
+                    neg *= self.likelihood_probs[0][idx]
+                    pos *= self.likelihood_probs[1][idx]
         neg *= self.prior_probs[0]
         pos *= self.prior_probs[1]
 
@@ -294,9 +295,9 @@ def d(argv):
     print("MAP::Validation error, # = {:>4d}, % = {:>8.4f}%.".format(error_count, error_percentage))
 
 def main(argv):
-    # a(argv)
-    # b(argv)
-    # c(argv)
+    a(argv)
+    b(argv)
+    c(argv)
     d(argv)
 
 if __name__ == '__main__':
