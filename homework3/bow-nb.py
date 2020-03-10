@@ -45,7 +45,7 @@ def split_train(original_train_data):
     # Fill in your code here.
 
     split_idx = int(len(original_train_data) * .8)
-    return (original_train_data[:4000], original_train_data[4000:])
+    return (original_train_data[1000:], original_train_data[:1000])
 
 def create_wordlist(original_train_data, threshold=26):
     """
@@ -131,13 +131,8 @@ class Model:
         neg, pos = label_counts
         total = neg + pos
         prior_probs = np.asarray([neg/total, pos/total])
-        if use_map:
-            for i in range(len(word_counts)):
-                for j in range(len(word_counts[i])):
-                    word_counts[i][j] += 1
-            likelihood_probs = list(map(lambda x, idx: list(map(lambda it: it / label_counts[idx], x)), word_counts, range(len(word_counts))))
-        else:
-            likelihood_probs = list(map(lambda x, idx: list(map(lambda it: it / label_counts[idx], x)), word_counts, range(len(word_counts))))
+        word_counts_sum = word_counts.sum(axis=1)
+        likelihood_probs = [word_counts[0]/word_counts_sum[0], word_counts[1]/word_counts_sum[1]]
 
         return prior_probs, np.asarray(likelihood_probs)
 
@@ -165,22 +160,19 @@ class Model:
 
         # Fill in your code here.
 
-        neg = 1
-        pos = 1
+        p1 = self.prior_probs[0]
+        p2 = self.prior_probs[1]
 
-        c = Counter(x)
-        for idx in range(len(self.wordlist)):
-            if self.wordlist[idx] in c.keys():
-                for time in range(c.get(self.wordlist[idx])):
-                    neg *= self.likelihood_probs[0][idx]
-                    pos *= self.likelihood_probs[1][idx]
-        neg *= self.prior_probs[0]
-        pos *= self.prior_probs[1]
+        for k in range(len(self.wordlist)):
+            exp = x.count(self.wordlist[k])
+            if exp >= 1:
+                p1 = p1 * self.likelihood_probs[0][k] ** exp
+                p2 = p2 * self.likelihood_probs[1][k] ** exp
+            else:
+                p1 *= (1 - self.likelihood_probs[0][k])
+                p2 *= (1 - self.likelihood_probs[1][k])
 
-        if pos/neg >= 1:
-            return True
-            
-        return False
+        return True if p1 < p2 else False
 
 def a(argv):
     opts = Opts(argv)
@@ -296,9 +288,9 @@ def d(argv):
 
 def main(argv):
     a(argv)
-    b(argv)
-    c(argv)
-    d(argv)
+    # b(argv)
+    # c(argv)
+    # d(argv)
 
 if __name__ == '__main__':
     main(sys.argv[1:])

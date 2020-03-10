@@ -173,6 +173,9 @@ class Model:
             if feature_vec[idx] == 1:
                 neg *= self.likelihood_probs[0][idx]
                 pos *= self.likelihood_probs[1][idx]
+            else:
+                neg *= (1 - self.likelihood_probs[0][idx])
+                pos *= (1 - self.likelihood_probs[1][idx])
         neg *= self.prior_probs[0]
         pos *= self.prior_probs[1]
 
