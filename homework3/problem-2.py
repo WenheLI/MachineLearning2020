@@ -6,7 +6,8 @@ import matplotlib.pyplot as pyplot
 import sys
 import argparse
 import numpy as np
-
+import math
+from collections import Counter
 
 class Opts:
     def __init__(self, argv):
@@ -131,14 +132,11 @@ class Model:
         neg, pos = label_counts
         total = neg + pos
         prior_probs = np.asarray([neg/total, pos/total])
+        word_counts_sum = word_counts.sum(axis=1)
         if use_map:
-            for i in range(len(word_counts)):
-                for j in range(len(word_counts[i])):
-                    word_counts[i][j] += 1
-            likelihood_probs = list(map(lambda x, idx: list(map(lambda it: it / (label_counts[idx] + len(word_counts[0])), x)), word_counts, range(len(word_counts))))
+            likelihood_probs = list(map(lambda x, idx: (x+1)/(word_counts_sum[idx] + len(word_counts[idx])), word_counts, range(len(word_counts))))
         else:
-            likelihood_probs = list(map(lambda x, idx: list(map(lambda it: it / label_counts[idx], x)), word_counts, range(len(word_counts))))
-
+            likelihood_probs = list(map(lambda x, idx: x/word_counts_sum[idx], word_counts, range(len(word_counts))))
         return prior_probs, np.asarray(likelihood_probs)
 
     def __init__(self, wordlist):
@@ -147,7 +145,8 @@ class Model:
     def fit(self, data, cal_error=False, use_map=False):
         label_counts = self.__class__.count_labels(data)
         word_counts = self.__class__.count_words(self.wordlist, data)
-
+        
+        self.use_map = use_map
         self.prior_probs, self.likelihood_probs = self.__class__.calculate_probability(label_counts, word_counts, use_map=use_map)
         if cal_error:
             error_count = sum([y != self.predict(x) for y, x in data])
@@ -164,25 +163,47 @@ class Model:
         """
 
         # Fill in your code here.
+        neg = 0
+        pos = 0
 
-        neg = 1
-        pos = 1
+        c = Counter(x)
+        if self.use_map:
+            for idx in range(len(self.wordlist)):
+                v = c.get(self.wordlist[idx], 0)
+                for time in range(v):
+                    neg += math.log(self.likelihood_probs[0][idx])
+                    pos += math.log(self.likelihood_probs[1][idx])
+                if v == 0:
+                    neg += math.log(1 - self.likelihood_probs[0][idx])
+                    pos += math.log(1 - self.likelihood_probs[1][idx])
+            neg += math.log(self.prior_probs[0])
+            pos += math.log(self.prior_probs[1])
 
-        feature_vec = list(map(lambda ele: 1 if ele in x else 0, self.wordlist))
-        for idx in range(len(feature_vec)):
-            if feature_vec[idx] == 1:
-                neg *= self.likelihood_probs[0][idx]
-                pos *= self.likelihood_probs[1][idx]
-            else:
-                neg *= (1 - self.likelihood_probs[0][idx])
-                pos *= (1 - self.likelihood_probs[1][idx])
-        neg *= self.prior_probs[0]
-        pos *= self.prior_probs[1]
+            if pos - neg >= 0:
+                return True
+                
+            return False
+        else:
+            neg = 1
+            pos = 1
+            for idx in range(len(self.wordlist)):
+                v = c.get(self.wordlist[idx], 0)
+                for time in range(v):
+                    neg *= (self.likelihood_probs[0][idx])
+                    pos *= (self.likelihood_probs[1][idx])
+                if v == 0:
+                    neg *= (1 - self.likelihood_probs[0][idx])
+                    pos *= (1 - self.likelihood_probs[1][idx])
+            neg *= (self.prior_probs[0])
+            pos *= (self.prior_probs[1])
 
-        if pos/neg >= 1:
-            return True
-            
-        return False
+            if pos / neg >= 1:
+                return True
+                
+            return False
+
+
+
 
 def a(argv):
     opts = Opts(argv)
@@ -227,7 +248,7 @@ def b(argv):
         wordlist = create_wordlist(original_train_data, opts.threshold)
 
         model = Model(wordlist)
-        train.append(model.fit(train_data[:size], cal_error=True))
+        train.append(model.fit(train_data[:size], cal_error=True, use_map=True))
 
         error_count = sum([y != model.predict(x) for y, x in val_data])
         error_percentage = error_count / len(val_data) * 100
@@ -254,7 +275,7 @@ def c(argv):
         wordlist = create_wordlist(original_train_data, size)
 
         model = Model(wordlist)
-        model.fit(train_data)
+        model.fit(train_data, use_map=True)
 
         error_count = sum([y != model.predict(x) for y, x in val_data])
         error_percentage = error_count / len(val_data) * 100

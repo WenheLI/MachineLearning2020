@@ -8,6 +8,7 @@ import argparse
 import numpy as np
 import math
 from collections import Counter
+import matplotlib.pyplot as pyplot
 
 class Opts:
     def __init__(self, argv):
@@ -56,14 +57,18 @@ def create_wordlist(original_train_data, threshold=26):
 
     # Fill in your code here.
     words_dict = {}
+    stopwords = []
+    with open("./stopwords.txt", "r") as f:
+        stopwords = list(map(lambda x: x.strip(), f.readlines()))
     
     for data in original_train_data:
         data = list(set(data[1]))
         for d in data:
-            if d in words_dict.keys():
-                words_dict[d] += 1
-            else:
-                words_dict[d] = 1
+            if d not in set(stopwords):
+                if d in words_dict.keys():
+                    words_dict[d] += 1
+                else:
+                    words_dict[d] = 1
     ret = list(map(lambda word: word[0], filter(lambda x: x[1] >= threshold, words_dict.items())))
     # print(len(ret))
     return ret
@@ -154,31 +159,33 @@ class Model:
         prior_probs = np.asarray([neg_counts/total, pos_counts/total])
 
         wordlist_length, _ = negative_word_counts.shape
-        likelihood_mus = np.zeros((2, wordlist_length))
-        
-        for idx in range(len(negative_word_counts)):
-            likelihood_mus[0][idx] = sum(negative_word_counts[idx]) / neg_counts
-        print(sum(likelihood_mus[0]))
-        for idx in range(len(positive_word_counts)):
-            likelihood_mus[1][idx] = sum(positive_word_counts[idx]) / pos_counts
-
-        likelihood_sigmas = np.zeros((2, wordlist_length))
+        likelihood_mus =  np.zeros((2, wordlist_length))
 
         for idx in range(len(negative_word_counts)):
-            likelihood_sigmas[0][idx] = sum(map(lambda x: (x - likelihood_mus[0][idx])**2, negative_word_counts[idx])) / neg_counts
+            likelihood_mus[0][idx] += (sum(negative_word_counts[idx])+1) / (negative_word_counts.sum()+wordlist_length)
         for idx in range(len(positive_word_counts)):
-            likelihood_sigmas[1][idx] = sum(map(lambda x: (x - likelihood_mus[1][idx])**2, positive_word_counts[idx])) / pos_counts
-        print(sum(likelihood_sigmas[0]))
+            likelihood_mus[1][idx] += (sum(positive_word_counts[idx])+1) / (positive_word_counts.sum()+wordlist_length)
+
+        likelihood_sigmas = np.ones((2, wordlist_length))
+        likelihood_sigmas *= 0.00001
+        for idx in range(len(negative_word_counts)):
+            likelihood_sigmas[0][idx] += sum(map(lambda x: (x - likelihood_mus[0][idx])**2, negative_word_counts[idx])) / (negative_word_counts.sum())
+        for idx in range(len(positive_word_counts)):
+            likelihood_sigmas[1][idx] += sum(map(lambda x: (x - likelihood_mus[1][idx])**2, positive_word_counts[idx])) /  (positive_word_counts.sum())
+
         return prior_probs, likelihood_mus, likelihood_sigmas
 
     def __init__(self, wordlist):
         self.wordlist = wordlist
 
-    def fit(self, data):
+    def fit(self, data, cal_error=False):
         label_counts = self.__class__.count_labels(data)
         negative_word_counts, positive_word_counts = self.__class__.count_words(self.wordlist, label_counts, data)
         self.prior_probs, self.likelihood_mus, self.likelihood_sigmas = self.__class__.calculate_probability(label_counts, negative_word_counts, positive_word_counts)
-
+        if cal_error:
+            error_count = sum([y != self.predict(x) for y, x in data])
+            error_percentage = error_count / len(data) * 100
+            return error_percentage
         # You may do some additional processing of variables here, if you want.
 
     def predict(self, x):
@@ -191,9 +198,9 @@ class Model:
         # Fill in your code here.
 
         def norm_func(x, miu, theta):
-            base = 1/((2*math.pi*(theta)) ** .5)
-            power = math.exp(-.5 * ((x - miu) ** 2)/theta)
-            return base * power
+            base = -.5*math.log(2*math.pi*theta)
+            power = -.5 * ((x - miu) ** 2)/theta
+            return base + power
 
         neg = 1
         pos = 1
@@ -202,23 +209,17 @@ class Model:
         for idx in range(len(self.wordlist)):
             val = counters.get(self.wordlist[idx], 0)
     
-            neg *= norm_func(val, self.likelihood_mus[0][idx], self.likelihood_sigmas[0][idx])
-            pos *= norm_func(val, self.likelihood_mus[1][idx], self.likelihood_sigmas[1][idx])
-        neg *= self.prior_probs[0]
-        pos *= self.prior_probs[1]
+            neg += norm_func(val, self.likelihood_mus[0][idx], self.likelihood_sigmas[0][idx])
+            pos += norm_func(val, self.likelihood_mus[1][idx], self.likelihood_sigmas[1][idx])
+        neg += self.prior_probs[0]
+        pos += self.prior_probs[1]
 
-        if neg == 0:
-            return True
-        if pos == 0:
-            return False
-
-
-        if neg/pos >= 1:
+        if neg - pos >= 0:
             return False
         return True
 
 
-def main(argv):
+def a(argv):
     opts = Opts(argv)
 
     if opts.test is None:
@@ -241,6 +242,69 @@ def main(argv):
         print("Validation error, # = {:>4d}, % = {:>8.4f}%.".format(error_count, error_percentage))
     else:
         print("Test error, # = {:>4d}, % = {:>8.4f}%.".format(error_count, error_percentage))
+def b(argv):
+    opts = Opts(argv)
+
+    if opts.test is None:
+        original_train_data = read_data(opts.train)
+        train_data, val_data = split_train(original_train_data)
+    else:
+        original_train_data = read_data(opts.train)
+        train_data = original_train_data
+        val_data = read_data(opts.test)
+    sizeN = [200, 400, 800, 1600, 2400, 3200, 4000]
+    validation = []
+    train = []
+    for size in sizeN:
+        # Create the word list.
+        wordlist = create_wordlist(original_train_data, opts.threshold)
+
+        model = Model(wordlist)
+        train.append(model.fit(train_data[:size], cal_error=True))
+
+        error_count = sum([y != model.predict(x) for y, x in val_data])
+        error_percentage = error_count / len(val_data) * 100
+        print("Validation error, # = {:>4d}, % = {:>8.4f}%.".format(error_count, error_percentage))
+        validation.append(error_percentage)
+    trainLine = pyplot.plot(sizeN, train, label="train")
+    validationLine = pyplot.plot(sizeN, validation, label="validation")
+    pyplot.title("Training Size V.S. Error Rate")
+    pyplot.xlabel("Training Size")
+    pyplot.ylabel("Error Rate")
+    pyplot.legend(["train", "validation"])
+    pyplot.show()
+
+def c(argv):
+    opts = Opts(argv)
+
+    original_train_data = read_data(opts.train)
+    train_data, val_data = split_train(original_train_data)
+
+    config = [i for i in range(19, 29)]
+    validation = []
+    for size in config:
+        # Create the word list.
+        wordlist = create_wordlist(original_train_data, size)
+
+        model = Model(wordlist)
+        model.fit(train_data)
+
+        error_count = sum([y != model.predict(x) for y, x in val_data])
+        error_percentage = error_count / len(val_data) * 100
+        print("Validation error, # = {:>4d}, % = {:>8.4f}%.".format(error_count, error_percentage))
+        validation.append(error_percentage)
+    pyplot.plot(config, validation, "r")
+    pyplot.title("Threshold V.S. Error Rate")
+    pyplot.xlabel("Threshold")
+    pyplot.ylabel("Error Rate")
+    pyplot.show()
+
+def main(argv):
+    #a(argv)
+    b(argv)
+    c(argv)
+    
+
 
 
 if __name__ == '__main__':
