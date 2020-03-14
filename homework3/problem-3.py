@@ -211,8 +211,8 @@ class Model:
     
             neg += norm_func(val, self.likelihood_mus[0][idx], self.likelihood_sigmas[0][idx])
             pos += norm_func(val, self.likelihood_mus[1][idx], self.likelihood_sigmas[1][idx])
-        neg += self.prior_probs[0]
-        pos += self.prior_probs[1]
+        neg += math.log(self.prior_probs[0])
+        pos += math.log(self.prior_probs[1])
 
         if neg - pos >= 0:
             return False

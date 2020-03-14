@@ -32,11 +32,11 @@ python problem-2.py spam_data/spam_train.txt
 ```bash
 python problem-3.py spam_data/spam_train.txt
 ```
-- a With MAP it can achieve $6.2\%$ error rate.
+- a With MAP it can achieve $15.3\%$ error rate.
 - b ![](Q3_b.png)
 - c ![](Q3_c.png)
 - d
-  `MAP` is $6.2\%$
+  `MAP` is $15.3\%$
   `MLE` is $26.9\%$
   Beacuse by applying `MAP`, we can use `log` to prevent underflow from happening.
 
