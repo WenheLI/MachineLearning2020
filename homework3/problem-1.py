@@ -65,7 +65,7 @@ def create_wordlist(original_train_data, threshold=26):
             else:
                 words_dict[d] = 1
     ret = list(map(lambda word: word[0], filter(lambda x: x[1] >= threshold, words_dict.items())))
-    # print(len(ret))
+    print(len(ret))
     return ret
 
 

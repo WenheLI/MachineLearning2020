@@ -300,7 +300,7 @@ def c(argv):
     pyplot.show()
 
 def main(argv):
-    #a(argv)
+    a(argv)
     b(argv)
     c(argv)
     
