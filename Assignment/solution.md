@@ -23,11 +23,11 @@ Wenhe Li wl1508
         w_0 + \sum_{i=1}^p w_iX_i
     $$
   - c
-    Naive Bayes: 2n
-    Logistic Regression: n
+    Naive Bayes: 4n + 1
+    Logistic Regression: n + 1
   - d
-    Naive Bayes: 2n + 2
-    Logistic Regression: 2n
+    Naive Bayes: 8n + 3
+    Logistic Regression: 2n + 2
 
 - 2
     Assume, $P(X_j = 1 | Y = 1) = \theta_j$ and $P(X_i = 1 | Y = 0) = \theta_i$,
@@ -48,8 +48,16 @@ Wenhe Li wl1508
       \frac{e^{x_c}}{\sum_{c' = 1}^C e^{x_{c'}}} \rArr  \frac{e^{x_c} * e^\delta}{e^\delta * \sum_{c' = 1}^C e^{x_{c'}}} \rArr  \frac{e^{x_c + \delta}}{\sum_{c' = 1}^C e^{x_{c'} + \delta}}
     $$
   - c
-    
+    For $y = C$:
+    $$
+      P(y = C | x, W) = \frac{e^{w_C^Tx}}{\sum_{c'=1}^{C-1} e^{w^T_{c'}x} + e^{w_C^Tx}} = \frac{1}{1 + \sum_{c'=1}^{C-1} e^{w^T_{c'}x - w^T_Cx}} = \\ \frac{1}{1 + \sum_{c'=1}^{C-1} e^{(w^T_{c'} - w^T_C)x}} = \frac{1}{1 + \sum_{c'=1}^{C-1} e^{v^T_{c'}x}}
+    $$
+    Similiarly, for $y = c$
+    $$
+      P(y = c | x, W) = 1 - P(y=C | x, W) - \sum_{i=1}^{C-1}(i \not ={c})P(y = i | x, W) = \frac{e^{v^T_cx}}{1 + \sum_{c'=1}^{C-1} e^{v^T_{c'}x}}
+    $$
   - d
+    We can siginificantly reduce the value for $v^T_{c'}x$ to avoid an overflow while calculation.
 - 2
   - a
     - 1 By using log, we can avoid underflow from happening, if the likelihood is extremly small.
@@ -59,7 +67,10 @@ Wenhe Li wl1508
 - 3
   - a
     $$
-    l(W) = ln (P(y=C|x, V) \prod_{c'=1}^{C-1}P(y=c'|x, V)) \rArr ln P(y=C|x, V) + \sum_{c'=1}^{C-1}P(y=c'|x, V)) \\
-    \rArr l(W) = -ln(1 + \sum_{c'=1}^{C-1}e^{v^T_{c'}x}) + \sum_{c'=1}^{C-1}（v^T_{c'}x -ln(1 + \sum_{c'=1}^{C-1}e^{v^T_{c'}x}) ）
+    l(V) = ln (P(y=C|x, V) \prod_{c'=1}^{C-1}P(y=c'|x, V)) \rArr ln P(y=C|x, V) + \sum_{c'=1}^{C-1}lnP(y=c'|x, V)) \\
+    \rArr l(V) = -ln(1 + \sum_{c'=1}^{C-1}e^{v^T_{c'}x}) + \sum_{c'=1}^{C-1}（v^T_{c'}x -ln(1 + \sum_{c'=1}^{C-1}e^{v^T_{c'}x}) ）
     $$
   - b
+    $$
+      g_c(V) = x -  \frac{2e^{v^T_cx}}{1 + \sum_{c'=1}^{C-1} e^{v^T_{c'}x}}
+    $$

@@ -54,9 +54,18 @@ class SigmoidCrossEntropyForward:
         """
         Implement a batched version of sigmoid cross entropy function.
         """
-        
+        def theta(logits):
+            a = np.exp(logits)/(1 + np.exp(logits))
+            b = 1/(1 + np.exp(-logits))
+            return a if np.isnan(b).any() else b
         # Put your code here.
-
+        ys = ys.astype(int)
+        ls = theta(logits)
+        print(logits)
+        print(ls)
+        average_loss = - ys * np.log(ls) - (1 - ys) * np.log(1 - ls)
+        average_loss = average_loss.mean()
+        print(average_loss)
         if ctx is not None:
             # Put your code here.
             pass
