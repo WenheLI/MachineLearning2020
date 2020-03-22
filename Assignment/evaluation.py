@@ -43,80 +43,80 @@ for i, p in enumerate(linear_layer_forward, start=1):
 print("LinearLayerForward test succeeds.")
 
 
-# class LinearLayerBackward:
-#     def __init__(self):
-#         self.batch_size = 100
-#         self.num_features = 10
-#         self.delta = 1e-5
+class LinearLayerBackward:
+    def __init__(self):
+        self.batch_size = 100
+        self.num_features = 10
+        self.delta = 1e-5
 
-#     def __iter__(self):
-#         for i in range(10):
-#             weights = np.random.normal(size=(self.num_features, ))
-#             xs = np.random.normal(size=(self.batch_size, self.num_features))
-#             dlogits = np.random.normal(size=(self.batch_size, ))
-#             yield weights, xs, dlogits
+    def __iter__(self):
+        for i in range(10):
+            weights = np.random.normal(size=(self.num_features, ))
+            xs = np.random.normal(size=(self.batch_size, self.num_features))
+            dlogits = np.random.normal(size=(self.batch_size, ))
+            yield weights, xs, dlogits
 
-#     def __call__(self, weights, xs, dlogits):
-#         forward = solution.LinearLayerForward()
-#         backward = solution.LinearLayerBackward()
+    def __call__(self, weights, xs, dlogits):
+        forward = solution.LinearLayerForward()
+        backward = solution.LinearLayerBackward()
 
-#         ctx = dict()
-#         logits = forward(weights, xs, ctx=ctx)
-#         dw = backward(ctx, dlogits)
+        ctx = dict()
+        logits = forward(weights, xs, ctx=ctx)
+        dw = backward(ctx, dlogits)
 
-#         for d in range(self.num_features):
-#             real_dw = np.zeros_like(weights)
-#             real_dw[d] = self.delta
+        for d in range(self.num_features):
+            real_dw = np.zeros_like(weights)
+            real_dw[d] = self.delta
 
-#             moved_weights = weights + real_dw
-#             moved_logits = forward(moved_weights, xs)
+            moved_weights = weights + real_dw
+            moved_logits = forward(moved_weights, xs)
 
-#             assert np.all(np.absolute((moved_logits - logits).dot(dlogits) / self.delta - dw[d]) < 1e-5), 'Value mismatch in dimension {}.'.format(d)
-
-
-# linear_layer_backward = LinearLayerBackward()
-# for i, p in enumerate(linear_layer_backward, start=1):
-#     try:
-#         linear_layer_backward(*p)
-#     except:
-#         print("Checkpoint {i:d} for LinearLayerBackward fails.".format(i=i))
-#         raise
-# print("LinearLayerBackward test succeeds.")
+            assert np.all(np.absolute((moved_logits - logits).dot(dlogits) / self.delta - dw[d]) < 1e-5), 'Value mismatch in dimension {}.'.format(d)
 
 
-# class LinearLayerUpdate:
-#     def __init__(self):
-#         self.batch_size = 20
-#         self.num_features = 100
-
-#     def __iter__(self):
-#         for i in range(10):
-#             weights = np.random.normal(size=(self.num_features, ))
-#             dw = np.random.normal(size=(self.num_features, ))
-#             learning_rate = np.random.poisson() / 10 + 0.1
-#             yield weights, dw, learning_rate
-
-#     def __call__(self, weights, dw, learning_rate):
-#         update = solution.LinearLayerUpdate()
-
-#         delta_weights = np.random.normal(size=weights.shape)
-#         alpha_new_weights = update(weights, dw, learning_rate=learning_rate)
-#         beta_new_weights = update(weights + delta_weights, dw, learning_rate=learning_rate)
-#         assert np.all(np.absolute((beta_new_weights - alpha_new_weights) - delta_weights) < 1e-8), 'The update rule should be linear with the original weights.'
-
-#         delta_dw = np.random.normal(size=dw.shape)
-#         beta_new_weights = update(weights, dw + delta_dw, learning_rate=learning_rate)
-#         assert np.all(np.absolute((beta_new_weights - alpha_new_weights) + delta_dw * learning_rate) < 1e-8)
+linear_layer_backward = LinearLayerBackward()
+for i, p in enumerate(linear_layer_backward, start=1):
+    try:
+        linear_layer_backward(*p)
+    except:
+        print("Checkpoint {i:d} for LinearLayerBackward fails.".format(i=i))
+        raise
+print("LinearLayerBackward test succeeds.")
 
 
-# linear_layer_update = LinearLayerUpdate()
-# for i, p in enumerate(linear_layer_update, start=1):
-#     try:
-#         linear_layer_update(*p)
-#     except:
-#         print("Checkpoint {i:d} for LinearLayerUpdate fails.".format(i=i))
-#         raise
-# print("LinearLayerUpdate test succeeds.")
+class LinearLayerUpdate:
+    def __init__(self):
+        self.batch_size = 20
+        self.num_features = 100
+
+    def __iter__(self):
+        for i in range(10):
+            weights = np.random.normal(size=(self.num_features, ))
+            dw = np.random.normal(size=(self.num_features, ))
+            learning_rate = np.random.poisson() / 10 + 0.1
+            yield weights, dw, learning_rate
+
+    def __call__(self, weights, dw, learning_rate):
+        update = solution.LinearLayerUpdate()
+
+        delta_weights = np.random.normal(size=weights.shape)
+        alpha_new_weights = update(weights, dw, learning_rate=learning_rate)
+        beta_new_weights = update(weights + delta_weights, dw, learning_rate=learning_rate)
+        assert np.all(np.absolute((beta_new_weights - alpha_new_weights) - delta_weights) < 1e-8), 'The update rule should be linear with the original weights.'
+
+        delta_dw = np.random.normal(size=dw.shape)
+        beta_new_weights = update(weights, dw + delta_dw, learning_rate=learning_rate)
+        assert np.all(np.absolute((beta_new_weights - alpha_new_weights) + delta_dw * learning_rate) < 1e-8)
+
+
+linear_layer_update = LinearLayerUpdate()
+for i, p in enumerate(linear_layer_update, start=1):
+    try:
+        linear_layer_update(*p)
+    except:
+        print("Checkpoint {i:d} for LinearLayerUpdate fails.".format(i=i))
+        raise
+print("LinearLayerUpdate test succeeds.")
 
 
 class SigmoidCrossEntropyForward:

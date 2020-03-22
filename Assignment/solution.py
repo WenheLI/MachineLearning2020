@@ -16,14 +16,16 @@ class LinearLayerForward:
         """
         Implement a batched version of linear transformation.
         """
-
         # Put your code here.
-        logits = xs * np.transpose(weights)
-
+        x = weights.shape[0]
+        weight_t = np.transpose(weights)
+        logits = []
+        for x in xs:
+            logits.append(np.dot(weight_t, x))
+        logits = np.asarray(logits)
         if ctx is not None:
             # Put your code here.
-            pass
-
+            ctx['weight'] = xs
         return logits
 
 
@@ -32,9 +34,13 @@ class LinearLayerBackward:
         """
         Get the derivative of the weight vector.
         """
-        
-        # Put your code here.
 
+        dl = ctx['weight']
+        f = dl.shape[1]
+        dw = np.zeros(f)
+
+        for i in range(len(dlogits)):
+            dw += np.dot(dlogits[i], dl[i])
         return dw
 
 
@@ -45,6 +51,8 @@ class LinearLayerUpdate:
         """
 
         # Put your code here.
+
+        new_weights = weights - learning_rate * dw
 
         return new_weights
 
@@ -61,11 +69,11 @@ class SigmoidCrossEntropyForward:
         # Put your code here.
         ys = ys.astype(int)
         ls = theta(logits)
-        print(logits)
-        print(ls)
+
         average_loss = - ys * np.log(ls) - (1 - ys) * np.log(1 - ls)
+
         average_loss = average_loss.mean()
-        print(average_loss)
+
         if ctx is not None:
             # Put your code here.
             pass
