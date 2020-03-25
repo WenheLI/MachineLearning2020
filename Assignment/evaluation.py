@@ -206,7 +206,6 @@ class SigmoidCrossEntropyBackward:
 
             moved_logits = logits + real_dlogits
             moved_average_loss = forward(moved_logits, ys)
-
             assert np.all(np.absolute((moved_average_loss - average_loss) / self.delta - dlogits[d]) < 1e-5), 'Value mismatch in dimension {}.'.format(d)
 
 

@@ -17,7 +17,16 @@ class LinearLayerForward:
         Implement a batched version of linear transformation.
         """
         # Put your code here.
-        x = weights.shape[0]
+
+        # def normalize(inputs):
+        #     _min = inputs.min()
+        #     _max = inputs.max()
+        #     temp = _max - _min
+        #     if temp == 0:
+        #         temp = 1
+        #     return (inputs - _min)/temp
+        # xs = normalize(xs)
+       
         weight_t = np.transpose(weights)
         logits = []
         for x in xs:
@@ -62,21 +71,35 @@ class SigmoidCrossEntropyForward:
         """
         Implement a batched version of sigmoid cross entropy function.
         """
-        def theta(logits):
-            a = np.exp(logits)/(1 + np.exp(logits))
-            b = 1/(1 + np.exp(-logits))
-            return a if np.isnan(b).any() else b
+
+        dys = []
+        dexp = []
+
+        def theta(logits, ys):
+            logits = np.copy(logits)
+            for i in range(len(logits)):
+                if (logits[i] >= 0):
+                    dy = (1 - ys[i])
+                    exp = np.exp(-logits[i])
+                    logits[i] = dy * logits[i] + np.log(1+exp)
+                    dys.append(dy)
+                    dexp.append(-exp/(1+exp))
+                else:
+                    dy = -ys[i]
+                    exp = np.exp(logits[i])
+                    logits[i] = dy * logits[i] + np.log(1+exp)
+                    dys.append(dy)
+                    dexp.append(exp/(1+exp))
+            return logits
         # Put your code here.
         ys = ys.astype(int)
-        ls = theta(logits)
-
-        average_loss = - ys * np.log(ls) - (1 - ys) * np.log(1 - ls)
-
+        average_loss = theta(logits, ys)        
         average_loss = average_loss.mean()
 
         if ctx is not None:
             # Put your code here.
-            pass
+            ctx['ys'] = np.asarray(dys)
+            ctx['exp'] = np.asarray(dexp)
 
         return average_loss
 
@@ -88,7 +111,10 @@ class SigmoidCrossEntropyBackward:
         """
         
         # Put your code here.
-
+        dlogits = ctx['ys'] + ctx['exp']
+        print(ctx['ys'].shape)
+        print(ctx['exp'].shape)
+        print(dlogits.shape)
         return dlogits
 
 
