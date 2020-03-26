@@ -3,13 +3,30 @@ import numpy as np
 
 # Tune hyper-parameters here.
 opts = {
-    'threshold': 100000000,
-    'num_epochs': 100000000,
-    'batch_size': 100000000,
-    'init_weight_scale': 10000000000.000000000000001,
-    'learning_rate': 10000000000.000000000000001
-}
+    'threshold': 29,
+    'num_epochs': 300,
+    'batch_size': 200,
+    'init_weight_scale': 0.005,
+    'learning_rate': .95 
+    }
 
+# 30 100 50 .5 .01
+# 30 100 50 .5 .5
+# 30 200 100 .5 .75 .05% 2.4%
+# 25 200 100 .5 .75 .05% 3.5%
+# 25 200 125 .5 .75 .05% 3.6%
+# 25 200 125 .5 .85 .05% 3.2%
+# 25 300 100 .5 .75 .025% 1.9%
+# 25 300 150 .5 .75 .025% 3.5%
+# 25 300 300 .5 .75 .075% 2.7%
+# 25 300 125 .5 .5 .075% 2.8%
+# 27 300 100 .1 .75 0% 2.5%
+# 27 300 100 .01 .75 0% 2.4%
+# 27 300 100 .01 .85 0.025% 3.2%
+# 27 300 300 .01 .85 0.05% 2.7%
+# 27 300 500 .01 .99 0.05% 2.6%
+# 27 300 250 .0005 .95 0.05% 3.1%
+# 27 350 150 .0001 .9 0% 2.3%
 
 class LinearLayerForward:
     def __call__(self, weights, xs, ctx=None):
@@ -98,8 +115,8 @@ class SigmoidCrossEntropyForward:
 
         if ctx is not None:
             # Put your code here.
-            ctx['ys'] = np.asarray(dys)
-            ctx['exp'] = np.asarray(dexp)
+            ctx['ys'] = np.asarray(dys) / len(logits)
+            ctx['exp'] = np.asarray(dexp) / len(logits)
 
         return average_loss
 
@@ -112,9 +129,6 @@ class SigmoidCrossEntropyBackward:
         
         # Put your code here.
         dlogits = ctx['ys'] + ctx['exp']
-        print(ctx['ys'].shape)
-        print(ctx['exp'].shape)
-        print(dlogits.shape)
         return dlogits
 
 
@@ -125,5 +139,5 @@ class Prediction:
         """
 
         # Put your code here.
-
+        predictions = logits > 0
         return predictions
