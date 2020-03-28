@@ -4,9 +4,9 @@ import numpy as np
 # Tune hyper-parameters here.
 opts = {
     'threshold': 29,
-    'num_epochs': 300,
-    'batch_size': 200,
-    'init_weight_scale': 0.005,
+    'num_epochs': 250,
+    'batch_size': 100,
+    'init_weight_scale': 0.009,
     'learning_rate': .95 
     }
 
@@ -27,6 +27,7 @@ opts = {
 # 27 300 500 .01 .99 0.05% 2.6%
 # 27 300 250 .0005 .95 0.05% 3.1%
 # 27 350 150 .0001 .9 0% 2.3%
+# 29 250 100 .009 .95 0% 2.3% 3.8%
 
 class LinearLayerForward:
     def __call__(self, weights, xs, ctx=None):
