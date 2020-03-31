@@ -26,8 +26,10 @@ Wenhe Li wl1508
     Naive Bayes: 4n + 1
     Logistic Regression: n + 1
   - d
-    Naive Bayes: 8n + 3
-    Logistic Regression: 2n + 2
+    Naive Bayes:
+      We just count the total number of elements and the number of elements that fit certain condition.
+    Logistic Regression:
+      We use Maximize Conditional likelihood estimation to train on the whole dataset and get the Parameters `W = <w0 ... wn>`
 
 - 2
     Assume, $P(X_j = 1 | Y = 1) = \theta_j$ and $P(X_i = 1 | Y = 0) = \theta_i$,
@@ -54,7 +56,7 @@ Wenhe Li wl1508
     $$
     Similiarly, for $y = c$
     $$
-      P(y = c | x, W) = 1 - P(y=C | x, W) - \sum_{i=1}^{C-1}(i \not ={c})P(y = i | x, W) = \frac{e^{v^T_cx}}{1 + \sum_{c'=1}^{C-1} e^{v^T_{c'}x}}
+      P(y = c | x, W) = \frac{e^{w_c^Tx}}{\sum_{c'=1}^{C-1} e^{w^T_{c'}x} + e^{w_C^Tx}} = \frac{e^{(w_c^T - w_C^T)x}}{1 + \sum_{c'=1}^{C-1} e^{w^T_{c'}x - w^T_Cx}} = \frac{e^{v^T_cx}}{1 + \sum_{c'=1}^{C-1} e^{v^T_{c'}x}}
     $$
   - d
     We can siginificantly reduce the value for $v^T_{c'}x$ to avoid an overflow while calculation.
@@ -66,13 +68,13 @@ Wenhe Li wl1508
     By applying a log on our function, we does not change the `monotonicity` of the function. Therefore, we can still get the classification surface.
 - 3
   - a
+    We define $\delta(Y^l = c) = 1$ and $\delta(Y^l \not = c) = 0$ 
     $$
-    l(V) = ln (P(y=C|x, V) \prod_{c'=1}^{C-1}P(y=c'|x, V)) \rArr ln P(y=C|x, V) + \sum_{c'=1}^{C-1}lnP(y=c'|x, V)) \\
-    \rArr l(V) = -ln(1 + \sum_{c'=1}^{C-1}e^{v^T_{c'}x}) + \sum_{c'=1}^{C-1}（v^T_{c'}x -ln(1 + \sum_{c'=1}^{C-1}e^{v^T_{c'}x}) ）
+    l(W) = ln \prod_{l=1}^n P(Y^l | X_l, W) = \sum_{l=1}^n ln P(Y^l | X_l, W) = \sum_{l=1}^n \sum_{c=1}^C \delta(Y^l = c) (w^T_cx - ln \sum_{c'=1}^C e^{{w^t_{c'}}x})
     $$
   - b
     $$
-      g_c(V) = x -  \frac{2e^{v^T_cx}}{1 + \sum_{c'=1}^{C-1} e^{v^T_{c'}x}}
+      g_c(W) = \sum_{l=1}^n \delta(Y^l = c)(x -  \frac{xe^{w^T_cx}}{\sum_{c'=1}^{C} e^{w^T_{c'}x}})
     $$
 
 ## Problem 3
