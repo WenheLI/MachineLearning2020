@@ -23,8 +23,8 @@ Wenhe Li wl1508
         w_0 + \sum_{i=1}^p w_iX_i
     $$
   - c
-    Naive Bayes: 4n + 1
-    Logistic Regression: n + 1
+    Naive Bayes: $P(X_i|Y=y)$ and $P(Y=y)$
+    Logistic Regression: the weight $w$
   - d
     Naive Bayes:
       We just count the total number of elements and the number of elements that fit certain condition.
