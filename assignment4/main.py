@@ -46,13 +46,14 @@ class NeuralNetwork:
 
 
 class NeuralNetworkNP:
-    def __init__(self, ws, bs, ws2, bs2):
+    def __init__(self, ws, bs, ws2, bs2, is_relu=False):
         super().__init__()
         self.ws = ws
         self.bs = bs
         self.ws2 = ws2
         self.bs2 = bs2
         self.res = []
+        self.is_relu = is_relu
 
     def logistic(self, x):
         if x > 0:
@@ -62,8 +63,12 @@ class NeuralNetworkNP:
             return e/(1+e)
 
     def hidden_unit(self, x, w, b):
+
         temp = x.dot(w) + b
-        return 1/(1+np.exp(-temp))
+        if self.is_relu:
+            return np.max(temp, 0)
+        else:
+            return 1/(1+np.exp(-temp))
 
     def softmax(self, z):
         temp = np.exp(z)
@@ -71,15 +76,17 @@ class NeuralNetworkNP:
         return z/_sum
 
     def output_layer(self, x, w, b):
-        return self.softmax(list(map(lambda value, idx: self.hidden_unit(x, value, b[idx]), w, range(len(w)))))
+        t = np.asarray(list(map(lambda value, idx: self.hidden_unit(x, value, b[idx]), w, range(len(w)))))
+        return self.softmax(t)
 
     def forward(self, xs):
-        return self.output_layer(list(map(lambda w, idx: self.hidden_unit(xs, w, bs[idx]), self.ws, range(len(self.ws)))), self.ws2, self.bs2)
+        t = np.asarray(list(map(lambda w, idx: self.hidden_unit(xs, w, bs[idx]), self.ws, range(len(self.ws)))))
+        return self.output_layer(t, self.ws2, self.bs2)
 
     def classify(self, x):
         res = self.forward(x)
         self.res.append(res)
-        return res.index(max(res))
+        return res.argmax()
 
     def digit_classifier(self, xs, ys):
         res = list(map(lambda x, idx: self.classify(x) == (ys[idx]-1), xs, range(len(xs))))
@@ -100,21 +107,23 @@ if __name__ == "__main__":
 
     with open("./ps5_theta1.csv", "r") as f:
         res = f.readlines()
-        bs = vscHelper(res[0])
-        ws = list(map(lambda x: vscHelper(x), res[1:]))
+        matrix = list(map(lambda x: vscHelper(x), res))
+        bs = [m[0] for m in matrix]
+        ws = [[m[i] for i in range(1, len(matrix[0]))] for m in matrix]
 
     with open("./ps5_theta2.csv", "r") as f:
         res = f.readlines()
-        bs2 = vscHelper(res[0])
-        ws2 = list(map(lambda x: vscHelper(x), res[1:]))
+        matrix = list(map(lambda x: vscHelper(x), res))
+        bs2 = [m[0] for m in matrix]
+        ws2 = [[m[i] for i in range(1, len(matrix[0]))] for m in matrix]
 
-    startTime = time.time()
+    # startTime = time.time()
 
-    net = NeuralNetwork(ws, bs, ws2, bs2)
-    val = net.digit_classifier(inputs, labels)
+    # net = NeuralNetwork(ws, bs, ws2, bs2)
+    # val = net.digit_classifier(inputs, labels)
     
-    print(time.time() - startTime)
-    print(val)
+    # print(time.time() - startTime)
+    # print(val)
 
     ws_np = np.asarray(ws)
     bs_np = np.asarray(bs)
@@ -126,7 +135,31 @@ if __name__ == "__main__":
     startTime = time.time()
     npnet = NeuralNetworkNP(ws_np, bs_np, ws2_np, bs2_np)    
 
-    val = net.digit_classifier(inputs_np, labels_np)
+    val = npnet.digit_classifier(inputs_np, labels_np)
+    
+    print(time.time() - startTime)
+    print(val)
+
+    startTime = time.time()
+    npnet = NeuralNetworkNP(ws_np[:20], bs_np[:20], ws2_np[:,:20], bs2_np[:20])    
+
+    val = npnet.digit_classifier(inputs_np, labels_np)
+    
+    print(time.time() - startTime)
+    print(val)
+
+    startTime = time.time()
+    npnet = NeuralNetworkNP(ws_np, bs_np, ws2_np, bs2_np, is_relu=True)    
+
+    val = npnet.digit_classifier(inputs_np, labels_np)
+    
+    print(time.time() - startTime)
+    print(val)
+
+    startTime = time.time()
+    npnet = NeuralNetworkNP(ws_np[:20], bs_np[:20], ws2_np[:,:20], bs2_np[:20], is_relu=True)    
+
+    val = npnet.digit_classifier(inputs_np, labels_np)
     
     print(time.time() - startTime)
     print(val)
