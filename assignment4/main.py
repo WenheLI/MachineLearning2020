@@ -44,6 +44,10 @@ class NeuralNetwork:
         pos = len(list(filter(lambda x: x, res)))
         return 1 - pos/len(res)
 
+    def loss(self, ys):
+        temp = list(map(lambda val, idx: math.log(val[ys[idx]-1]), self.res, range(len(self.res))))
+        return -sum(temp)/len(temp)
+
 
 class NeuralNetworkNP:
     def __init__(self, ws, bs, ws2, bs2, is_relu=False):
@@ -117,13 +121,15 @@ if __name__ == "__main__":
         bs2 = [m[0] for m in matrix]
         ws2 = [[m[i] for i in range(1, len(matrix[0]))] for m in matrix]
 
-    # startTime = time.time()
+    startTime = time.time()
 
-    # net = NeuralNetwork(ws, bs, ws2, bs2)
-    # val = net.digit_classifier(inputs, labels)
-    
-    # print(time.time() - startTime)
-    # print(val)
+    net = NeuralNetwork(ws, bs, ws2, bs2)
+    val = net.digit_classifier(inputs, labels)
+    l = net.loss(labels)
+    print("-----------Naive python----------------")
+    print(time.time() - startTime)
+    print(val)
+    print(l)
 
     ws_np = np.asarray(ws)
     bs_np = np.asarray(bs)
@@ -136,7 +142,7 @@ if __name__ == "__main__":
     npnet = NeuralNetworkNP(ws_np, bs_np, ws2_np, bs2_np)    
 
     val = npnet.digit_classifier(inputs_np, labels_np)
-    
+    print("-----------NP python----------------")
     print(time.time() - startTime)
     print(val)
 
@@ -144,7 +150,7 @@ if __name__ == "__main__":
     npnet = NeuralNetworkNP(ws_np[:20], bs_np[:20], ws2_np[:,:20], bs2_np[:20])    
 
     val = npnet.digit_classifier(inputs_np, labels_np)
-    
+    print("-----------Less Weight----------------")
     print(time.time() - startTime)
     print(val)
 
@@ -152,7 +158,7 @@ if __name__ == "__main__":
     npnet = NeuralNetworkNP(ws_np, bs_np, ws2_np, bs2_np, is_relu=True)    
 
     val = npnet.digit_classifier(inputs_np, labels_np)
-    
+    print("-----------RELu----------------")
     print(time.time() - startTime)
     print(val)
 
@@ -160,6 +166,6 @@ if __name__ == "__main__":
     npnet = NeuralNetworkNP(ws_np[:20], bs_np[:20], ws2_np[:,:20], bs2_np[:20], is_relu=True)    
 
     val = npnet.digit_classifier(inputs_np, labels_np)
-    
+    print("-----------RELu & Less Weight----------------")
     print(time.time() - startTime)
     print(val)
